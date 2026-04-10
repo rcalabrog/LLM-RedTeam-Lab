@@ -13,6 +13,7 @@ from .deps import (
     get_campaign_evaluator,
     get_pipeline,
     get_repository,
+    require_llm_ready,
 )
 from .errors import raise_campaign_http_error
 
@@ -55,6 +56,7 @@ def get_workflow_catalog(
 )
 async def execute_evaluate_workflow(
     payload: CampaignRunRequest,
+    _llm_ready: None = Depends(require_llm_ready),
     settings: Settings = Depends(get_settings),
     pipeline: RedTeamPipeline = Depends(get_pipeline),
     evaluator: CampaignEvaluator = Depends(get_campaign_evaluator),
@@ -74,6 +76,7 @@ async def execute_evaluate_workflow(
 )
 async def execute_evaluate_save_workflow(
     payload: CampaignRunRequest,
+    _llm_ready: None = Depends(require_llm_ready),
     settings: Settings = Depends(get_settings),
     pipeline: RedTeamPipeline = Depends(get_pipeline),
     evaluator: CampaignEvaluator = Depends(get_campaign_evaluator),

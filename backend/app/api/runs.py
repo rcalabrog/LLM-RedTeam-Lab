@@ -7,7 +7,7 @@ from ..orchestration import (
     CampaignRunResult,
     RedTeamPipeline,
 )
-from .deps import get_pipeline
+from .deps import get_pipeline, require_llm_ready
 from .errors import raise_campaign_http_error
 
 router = APIRouter(prefix="/runs", tags=["runs"])
@@ -20,6 +20,7 @@ router = APIRouter(prefix="/runs", tags=["runs"])
 )
 async def create_run(
     payload: CampaignRunRequest,
+    _llm_ready: None = Depends(require_llm_ready),
     settings: Settings = Depends(get_settings),
     pipeline: RedTeamPipeline = Depends(get_pipeline),
 ) -> CampaignRunResult:

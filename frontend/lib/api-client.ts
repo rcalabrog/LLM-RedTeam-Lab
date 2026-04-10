@@ -7,7 +7,7 @@ import {
   WorkflowCatalogResponse
 } from "@/types/api";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "/backend/api/v1";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://127.0.0.1:8000/api/v1";
 
 export class ApiError extends Error {
   status: number;
@@ -53,7 +53,24 @@ export function getWorkflowCatalog(): Promise<WorkflowCatalogResponse> {
 }
 
 export function getReadiness(): Promise<ReadinessResponse> {
-  return request<ReadinessResponse>("/health/readiness", { cache: "no-store" });
+  return fetch(`${API_BASE_URL}/health/readiness`, {
+    cache: "no-store"
+  }).then(async (response) => {
+    if (response.status === 200 || response.status === 503) {
+      return (await response.json()) as ReadinessResponse;
+    }
+
+    let message = `Request failed with status ${response.status}`;
+    try {
+      const payload = (await response.json()) as { detail?: string };
+      if (payload.detail) {
+        message = payload.detail;
+      }
+    } catch {
+      // Keep fallback message.
+    }
+    throw new ApiError(message, response.status);
+  });
 }
 
 export function executeEvaluate(payload: CampaignRunRequest): Promise<EvaluatedCampaignResult> {

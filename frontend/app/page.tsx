@@ -163,6 +163,14 @@ export default function HomePage() {
   const runWorkflow = useCallback(
     async (forceSave: boolean) => {
       setRunError(null);
+      if (readiness && readiness.status !== "ok") {
+        const degraded = readiness.components
+          .filter((component) => component.status !== "ok")
+          .map((component) => `${component.name}: ${component.detail ?? component.status}`)
+          .join(" | ");
+        setRunError(`Runtime not ready. ${degraded || "Check Ollama and SQLite status."}`);
+        return;
+      }
       setRunning(true);
       try {
         const payload = buildRequestPayload(formState);
@@ -188,7 +196,7 @@ export default function HomePage() {
         setRunning(false);
       }
     },
-    [formState, refreshReadiness, refreshSavedCampaigns]
+    [formState, readiness, refreshReadiness, refreshSavedCampaigns]
   );
 
   const handleSelectSavedCampaign = useCallback(async (runId: string) => {

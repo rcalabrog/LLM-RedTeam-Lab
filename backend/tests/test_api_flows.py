@@ -3,7 +3,7 @@ from datetime import datetime, timezone
 
 from fastapi.testclient import TestClient
 
-from app.api.deps import get_campaign_evaluator, get_pipeline, get_repository
+from app.api.deps import get_campaign_evaluator, get_pipeline, get_repository, require_llm_ready
 from app.attacks import AttackCategory, AttackSeverity
 from app.evaluation import (
     AttackEvaluationResult,
@@ -215,6 +215,7 @@ class TestAPISurface(unittest.TestCase):
         app.dependency_overrides[get_pipeline] = lambda: self.fake_pipeline
         app.dependency_overrides[get_campaign_evaluator] = lambda: self.fake_evaluator
         app.dependency_overrides[get_repository] = lambda: self.fake_repository
+        app.dependency_overrides[require_llm_ready] = lambda: None
         self.client = TestClient(app)
 
     def tearDown(self) -> None:

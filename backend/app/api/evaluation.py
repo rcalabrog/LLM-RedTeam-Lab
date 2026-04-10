@@ -7,7 +7,7 @@ from ..orchestration import (
     CampaignRunResult,
     RedTeamPipeline,
 )
-from .deps import get_campaign_evaluator, get_pipeline
+from .deps import get_campaign_evaluator, get_pipeline, require_llm_ready
 from .errors import raise_campaign_http_error
 
 router = APIRouter(prefix="/evaluation", tags=["evaluation"])
@@ -32,6 +32,7 @@ def evaluate_campaign_payload(
 )
 async def execute_and_evaluate(
     payload: CampaignRunRequest,
+    _llm_ready: None = Depends(require_llm_ready),
     settings: Settings = Depends(get_settings),
     pipeline: RedTeamPipeline = Depends(get_pipeline),
     evaluator: CampaignEvaluator = Depends(get_campaign_evaluator),

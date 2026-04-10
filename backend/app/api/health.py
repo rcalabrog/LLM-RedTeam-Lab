@@ -62,6 +62,14 @@ class ReadinessResponse(BaseModel):
     components: list[ComponentReadiness]
 
 
+def _provider_health_detail(health: ProviderHealth) -> str | None:
+    if health.available:
+        return None
+    if health.error:
+        return health.error
+    return health.status
+
+
 @router.get(
     "/health/readiness",
     response_model=ReadinessResponse,
@@ -80,7 +88,7 @@ async def readiness_check(
         llm_status = ComponentReadiness(
             name="llm",
             status="ok" if provider_health.available else "unavailable",
-            detail=provider_health.message,
+            detail=_provider_health_detail(provider_health),
         )
     except Exception as exc:  # noqa: BLE001
         llm_status = ComponentReadiness(name="llm", status="unavailable", detail=str(exc))

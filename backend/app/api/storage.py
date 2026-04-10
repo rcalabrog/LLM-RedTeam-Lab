@@ -12,7 +12,7 @@ from ..storage import (
     SavedCampaignRecord,
     SavedCampaignSummary,
 )
-from .deps import get_campaign_evaluator, get_pipeline, get_repository
+from .deps import get_campaign_evaluator, get_pipeline, get_repository, require_llm_ready
 from .errors import raise_campaign_http_error
 
 router = APIRouter(prefix="/storage", tags=["storage"])
@@ -73,6 +73,7 @@ def get_campaign(
 )
 async def execute_evaluate_save_campaign(
     payload: CampaignRunRequest,
+    _llm_ready: None = Depends(require_llm_ready),
     settings: Settings = Depends(get_settings),
     pipeline: RedTeamPipeline = Depends(get_pipeline),
     evaluator: CampaignEvaluator = Depends(get_campaign_evaluator),

@@ -40,7 +40,7 @@ The project is built to demonstrate practical AI security engineering patterns: 
 ### Clone
 
 ```bash
-git clone <your-repo-url>
+git clone https://github.com/rcalabrog/LLM-RedTeam-Lab
 cd llm-red-team-lab
 ```
 
@@ -94,7 +94,7 @@ npm run dev
 
 - Backend env file: `backend/.env`
 - Default SQLite path: `backend/data/llm_red_team_lab.db`
-- Frontend API base defaults to proxied path: `/backend/api/v1`
+- Frontend API base defaults to: `http://127.0.0.1:8000/api/v1`
 - Optional frontend override (set in your shell before `npm run dev`):
 
 ```bash
