@@ -34,12 +34,16 @@ def get_target(name: str, settings: Settings) -> TargetApp:
         return SimpleVulnerableChatTarget(
             provider=provider,
             default_model=settings.default_main_model,
+            generation_temperature=settings.llm_generation_temperature,
+            generation_max_tokens=settings.llm_generation_max_tokens,
         )
 
     if normalized == "guarded_chat":
         return GuardedChatTarget(
             provider=provider,
             default_model=settings.default_main_model,
+            generation_temperature=settings.llm_generation_temperature,
+            generation_max_tokens=settings.llm_generation_max_tokens,
         )
 
     raise TargetNotFoundError(f"Unknown target '{name}'.")

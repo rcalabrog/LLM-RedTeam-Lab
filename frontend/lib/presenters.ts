@@ -33,6 +33,26 @@ export function formatRate(value: number): string {
   return `${(value * 100).toFixed(1)}%`;
 }
 
+export function formatDurationMs(milliseconds: number): string {
+  const totalSeconds = Math.max(0, Math.floor(milliseconds / 1000));
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+
+  if (minutes > 0) {
+    return `${minutes}m ${String(seconds).padStart(2, "0")}s`;
+  }
+  return `${seconds}s`;
+}
+
+export function durationBetweenIso(startIso: string, endIso: string): number | null {
+  const start = Date.parse(startIso);
+  const end = Date.parse(endIso);
+  if (Number.isNaN(start) || Number.isNaN(end) || end < start) {
+    return null;
+  }
+  return end - start;
+}
+
 export function classificationClassName(classification: EvaluationClassification): string {
   switch (classification) {
     case "success":

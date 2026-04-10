@@ -61,6 +61,8 @@ export default function HomePage() {
   const [selectedAttackId, setSelectedAttackId] = useState<string | null>(null);
 
   const [running, setRunning] = useState(false);
+  const [runElapsedMs, setRunElapsedMs] = useState(0);
+  const [runStartedAtMs, setRunStartedAtMs] = useState<number | null>(null);
   const [runError, setRunError] = useState<string | null>(null);
 
   const [formState, setFormState] = useState<CampaignFormState>({
@@ -160,6 +162,20 @@ export default function HomePage() {
     }
   }, [activeView, attackRows]);
 
+  useEffect(() => {
+    if (!running || runStartedAtMs === null) {
+      return;
+    }
+
+    const timerId = window.setInterval(() => {
+      setRunElapsedMs(Date.now() - runStartedAtMs);
+    }, 250);
+
+    return () => {
+      window.clearInterval(timerId);
+    };
+  }, [running, runStartedAtMs]);
+
   const runWorkflow = useCallback(
     async (forceSave: boolean) => {
       setRunError(null);
@@ -171,6 +187,9 @@ export default function HomePage() {
         setRunError(`Runtime not ready. ${degraded || "Check Ollama and SQLite status."}`);
         return;
       }
+      const startedAt = Date.now();
+      setRunStartedAtMs(startedAt);
+      setRunElapsedMs(0);
       setRunning(true);
       try {
         const payload = buildRequestPayload(formState);
@@ -193,7 +212,9 @@ export default function HomePage() {
       } catch (error) {
         setRunError(error instanceof Error ? error.message : "Failed to execute workflow.");
       } finally {
+        setRunElapsedMs(Date.now() - startedAt);
         setRunning(false);
+        setRunStartedAtMs(null);
       }
     },
     [formState, readiness, refreshReadiness, refreshSavedCampaigns]
@@ -263,6 +284,7 @@ export default function HomePage() {
               loading={catalogLoading}
               formState={formState}
               running={running}
+              runElapsedMs={runElapsedMs}
               runError={runError ?? catalogError}
               onChange={handleFormPatch}
               onApplyVulnerablePreset={applyVulnerablePreset}

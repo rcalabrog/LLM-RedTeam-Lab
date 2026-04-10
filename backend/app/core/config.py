@@ -10,6 +10,8 @@ from .constants import (
     DEFAULT_APP_NAME,
     DEFAULT_COMPARISON_MODEL,
     DEFAULT_LLM_PROVIDER,
+    DEFAULT_LLM_GENERATION_MAX_TOKENS,
+    DEFAULT_LLM_GENERATION_TEMPERATURE,
     DEFAULT_LLM_REQUEST_TIMEOUT_SECONDS,
     DEFAULT_LOG_LEVEL,
     DEFAULT_MAIN_MODEL,
@@ -41,6 +43,17 @@ class Settings(BaseSettings):
     llm_request_timeout_seconds: float = Field(
         default=DEFAULT_LLM_REQUEST_TIMEOUT_SECONDS,
         alias="LLM_REQUEST_TIMEOUT_SECONDS",
+        gt=0,
+    )
+    llm_generation_temperature: float = Field(
+        default=DEFAULT_LLM_GENERATION_TEMPERATURE,
+        alias="LLM_GENERATION_TEMPERATURE",
+        ge=0.0,
+        le=2.0,
+    )
+    llm_generation_max_tokens: int = Field(
+        default=DEFAULT_LLM_GENERATION_MAX_TOKENS,
+        alias="LLM_GENERATION_MAX_TOKENS",
         gt=0,
     )
     sqlite_db_path: str = Field(

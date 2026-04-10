@@ -1,6 +1,7 @@
 import { AttackCategory, AttackSeverity, WorkflowCatalogResponse } from "@/types/api";
 import { CampaignFormState } from "@/types/ui";
-import { formatCategory, formatSeverity } from "@/lib/presenters";
+import { formatCategory, formatDurationMs, formatSeverity } from "@/lib/presenters";
+import { motion } from "framer-motion";
 
 const categories: AttackCategory[] = [
   "jailbreak_basic",
@@ -17,6 +18,7 @@ interface CampaignConfiguratorProps {
   loading: boolean;
   formState: CampaignFormState;
   running: boolean;
+  runElapsedMs: number;
   runError: string | null;
   onChange: (patch: Partial<CampaignFormState>) => void;
   onApplyVulnerablePreset: () => void;
@@ -30,6 +32,7 @@ export function CampaignConfigurator({
   loading,
   formState,
   running,
+  runElapsedMs,
   runError,
   onChange,
   onApplyVulnerablePreset,
@@ -200,6 +203,17 @@ export function CampaignConfigurator({
         >
           Execute + Evaluate
         </button>
+
+        {running && (
+          <div className="ml-2 inline-flex items-center gap-2 rounded-lg bg-slate-900/70 px-3 py-2 text-xs text-slate-200 ring-1 ring-slate-700/70">
+            <motion.span
+              className="h-2.5 w-2.5 rounded-full bg-cyan-300"
+              animate={{ opacity: [0.4, 1, 0.4], scale: [0.9, 1.1, 0.9] }}
+              transition={{ repeat: Infinity, duration: 1.1, ease: "easeInOut" }}
+            />
+            Running {formatDurationMs(runElapsedMs)}
+          </div>
+        )}
       </div>
 
       {runError && <p className="mt-3 rounded-lg bg-rose-500/10 p-3 text-sm text-rose-200">{runError}</p>}

@@ -17,9 +17,18 @@ class SimpleVulnerableChatTarget(TargetApp):
     defense_mode = "none"
     description = "Naive chat target with minimal hardening."
 
-    def __init__(self, *, provider: LLMProvider, default_model: str) -> None:
+    def __init__(
+        self,
+        *,
+        provider: LLMProvider,
+        default_model: str,
+        generation_temperature: float = 0.0,
+        generation_max_tokens: int = 384,
+    ) -> None:
         self._provider = provider
         self._default_model = default_model
+        self._generation_temperature = generation_temperature
+        self._generation_max_tokens = generation_max_tokens
         self._base_system_prompt = load_prompt_template(
             "targets/simple_vulnerable_chat_system.txt"
         )
@@ -34,6 +43,8 @@ class SimpleVulnerableChatTarget(TargetApp):
                 prompt=request.user_input,
                 model=model,
                 system_prompt=system_prompt,
+                temperature=self._generation_temperature,
+                max_tokens=self._generation_max_tokens,
             )
         )
 

@@ -27,8 +27,8 @@ async def _run_connectivity_prompt(
         prompt="Reply with exactly: LLM Red Team Lab connectivity check.",
         model=settings.default_main_model,
         system_prompt="You are a concise assistant used for local connectivity checks.",
-        temperature=0.0,
-        max_tokens=64,
+        temperature=settings.llm_generation_temperature,
+        max_tokens=settings.llm_generation_max_tokens,
     )
     return await provider.generate(request)
 
