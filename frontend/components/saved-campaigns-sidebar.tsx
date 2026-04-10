@@ -27,8 +27,8 @@ export function SavedCampaignsSidebar({
   onNewRun
 }: SavedCampaignsSidebarProps) {
   return (
-    <aside className="rounded-2xl border border-slate-700/70 bg-slate-900/60 p-4 backdrop-blur">
-      <div className="flex items-center justify-between gap-2">
+    <aside className="flex h-full min-h-0 flex-col rounded-2xl border border-slate-700/70 bg-slate-900/60 p-4 backdrop-blur">
+      <div className="shrink-0 flex items-center justify-between gap-2">
         <h2 className="text-sm font-semibold uppercase tracking-[0.12em] text-slate-200">Saved Campaigns</h2>
         <button
           type="button"
@@ -39,11 +39,11 @@ export function SavedCampaignsSidebar({
         </button>
       </div>
 
-      <div className="mt-4">
+      <div className="mt-4 shrink-0">
         <ReadinessIndicator readiness={readiness} loading={readinessLoading} />
       </div>
 
-      <div className="mt-4 max-h-[56vh] space-y-2 overflow-y-auto pr-1">
+      <div className="mt-4 min-h-0 flex-1 space-y-2 overflow-y-auto pr-1">
         {loading && <p className="rounded-lg bg-slate-900/60 p-3 text-xs text-slate-300">Loading campaigns...</p>}
 
         {error && <p className="rounded-lg bg-rose-500/10 p-3 text-xs text-rose-200">{error}</p>}
@@ -64,12 +64,25 @@ export function SavedCampaignsSidebar({
               onClick={() => onSelectCampaign(campaign.run_id)}
               className={`w-full rounded-xl border p-3 text-left transition ${
                 selected
-                  ? "border-cyan-300/70 bg-cyan-500/15"
-                  : "border-slate-700/70 bg-slate-900/55 hover:border-slate-600"
+                  ? "border-cyan-300/80 bg-cyan-500/15 ring-1 ring-cyan-300/35"
+                  : "border-slate-700/70 bg-slate-900/55 hover:border-slate-500 hover:bg-slate-800/60"
               }`}
             >
               <p className="truncate text-sm font-semibold text-slate-100">{campaign.campaign_name}</p>
-              <p className="mt-0.5 text-xs text-slate-400">{campaign.target_name}</p>
+              <p className="mt-0.5 text-xs text-slate-400">
+                {campaign.target_name} • {campaign.pipeline_state}
+              </p>
+              <div className="mt-2 flex flex-wrap gap-1.5 text-[10px]">
+                <span className="rounded-full bg-slate-800/80 px-2 py-0.5 text-emerald-300">
+                  F:{campaign.failed_count}
+                </span>
+                <span className="rounded-full bg-slate-800/80 px-2 py-0.5 text-rose-300">
+                  S:{campaign.success_count}
+                </span>
+                <span className="rounded-full bg-slate-800/80 px-2 py-0.5 text-amber-300">
+                  A:{campaign.ambiguous_count}
+                </span>
+              </div>
               <div className="mt-2 flex items-center justify-between text-[11px] text-slate-400">
                 <span>{formatDateTime(campaign.completed_at)}</span>
                 <span>{formatRate(campaign.success_rate_overall)} resisted</span>

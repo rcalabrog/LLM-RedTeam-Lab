@@ -3,12 +3,9 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 
-import { AttackDetailPanel } from "@/components/attack-detail-panel";
-import { AttackResultsTable } from "@/components/attack-results-table";
-import { CampaignConfigurator } from "@/components/campaign-configurator";
-import { CampaignSummary } from "@/components/campaign-summary";
+import { CenterWorkspace } from "@/components/center-workspace";
+import { InspectorPanel } from "@/components/inspector-panel";
 import { LabHeader } from "@/components/lab-header";
-import { MetricsPanel } from "@/components/metrics-panel";
 import { SavedCampaignsSidebar } from "@/components/saved-campaigns-sidebar";
 import { buildAttackRows } from "@/lib/campaign-results";
 import {
@@ -19,14 +16,13 @@ import {
   getWorkflowCatalog,
   listSavedCampaigns
 } from "@/lib/api-client";
-import { formatCategory } from "@/lib/presenters";
 import {
   CampaignRunRequest,
   ReadinessResponse,
   SavedCampaignSummary,
   WorkflowCatalogResponse
 } from "@/types/api";
-import { CampaignFormState, CampaignViewModel, toCampaignView } from "@/types/ui";
+import { CampaignFormState, CampaignViewModel, CenterWorkspaceMode, toCampaignView } from "@/types/ui";
 
 function buildRequestPayload(formState: CampaignFormState): CampaignRunRequest {
   const maxAttacksParsed = formState.maxAttacks.trim() ? Number(formState.maxAttacks.trim()) : undefined;
@@ -74,6 +70,7 @@ export default function HomePage() {
     saveAfterExecution: true,
     enabledDefenses: []
   });
+  const centerMode: CenterWorkspaceMode = activeView ? "results" : "setup";
 
   const refreshSavedCampaigns = useCallback(async () => {
     setSavedLoading(true);
@@ -255,13 +252,19 @@ export default function HomePage() {
   }, [catalog]);
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-[#070d1a] text-slate-100">
+    <main className="relative h-screen overflow-hidden bg-[#070d1a] text-slate-100">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_5%,rgba(34,211,238,0.16),transparent_35%),radial-gradient(circle_at_85%_20%,rgba(16,185,129,0.10),transparent_40%),linear-gradient(180deg,rgba(15,23,42,0.45),rgba(2,6,23,0.92))]" />
-      <div className="relative mx-auto max-w-[1700px] p-6">
-        <LabHeader />
+      <div className="relative mx-auto flex h-full max-w-[1720px] flex-col p-4">
+        <div className="shrink-0">
+          <LabHeader compact />
+        </div>
 
-        <div className="mt-4 grid grid-cols-12 gap-4">
-          <motion.div initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} className="col-span-3">
+        <div className="mt-3 grid min-h-0 flex-1 grid-cols-12 gap-3">
+          <motion.div
+            initial={{ opacity: 0, x: -8 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="col-span-3 h-full min-h-0"
+          >
             <SavedCampaignsSidebar
               campaigns={savedCampaigns}
               selectedRunId={selectedSavedRunId}
@@ -278,45 +281,31 @@ export default function HomePage() {
             />
           </motion.div>
 
-          <motion.section initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="col-span-6 space-y-4">
-            <CampaignConfigurator
-              catalog={catalog}
-              loading={catalogLoading}
-              formState={formState}
-              running={running}
-              runElapsedMs={runElapsedMs}
-              runError={runError ?? catalogError}
-              onChange={handleFormPatch}
-              onApplyVulnerablePreset={applyVulnerablePreset}
-              onApplyGuardedDefaultPreset={applyGuardedPreset}
-              onRun={() => runWorkflow(formState.saveAfterExecution)}
-              onRunEvaluateOnly={() => runWorkflow(false)}
-            />
+          <CenterWorkspace
+            mode={centerMode}
+            catalog={catalog}
+            catalogLoading={catalogLoading}
+            runError={runError ?? catalogError}
+            formState={formState}
+            running={running}
+            runElapsedMs={runElapsedMs}
+            activeView={activeView}
+            attackRows={attackRows}
+            selectedAttackId={selectedAttackId}
+            onSelectAttack={(attackId) => setSelectedAttackId(attackId)}
+            onFormChange={handleFormPatch}
+            onApplyVulnerablePreset={applyVulnerablePreset}
+            onApplyGuardedDefaultPreset={applyGuardedPreset}
+            onRun={() => runWorkflow(formState.saveAfterExecution)}
+            onRunEvaluateOnly={() => runWorkflow(false)}
+          />
 
-            {catalog && (
-              <div className="rounded-xl border border-slate-700/70 bg-slate-900/55 p-3">
-                <p className="text-xs uppercase tracking-[0.12em] text-slate-400">Attack Catalog Snapshot</p>
-                <div className="mt-2 flex flex-wrap gap-2">
-                  {catalog.attack_categories.map((item) => (
-                    <span key={item.category} className="rounded-full bg-slate-800/70 px-2 py-1 text-xs text-slate-200">
-                      {formatCategory(item.category)}: {item.count}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            <CampaignSummary view={activeView} />
-            <AttackResultsTable
-              rows={attackRows}
-              selectedAttackId={selectedAttackId}
-              onSelectRow={(attackId) => setSelectedAttackId(attackId)}
-            />
-          </motion.section>
-
-          <motion.div initial={{ opacity: 0, x: 8 }} animate={{ opacity: 1, x: 0 }} className="col-span-3 space-y-4">
-            <MetricsPanel view={activeView} />
-            <AttackDetailPanel row={selectedAttackRow} />
+          <motion.div
+            initial={{ opacity: 0, x: 8 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="col-span-3 h-full min-h-0"
+          >
+            <InspectorPanel view={activeView} selectedRow={selectedAttackRow} />
           </motion.div>
         </div>
       </div>

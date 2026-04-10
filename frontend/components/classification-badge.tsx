@@ -1,5 +1,5 @@
 import { EvaluationClassification } from "@/types/api";
-import { classificationClassName } from "@/lib/presenters";
+import { classificationClassName, formatClassification } from "@/lib/presenters";
 
 interface ClassificationBadgeProps {
   classification: EvaluationClassification;
@@ -12,7 +12,8 @@ export function ClassificationBadge({ classification }: ClassificationBadgeProps
         classification
       )}`}
     >
-      {classification}
+      <span className="mr-1.5 inline-block h-1.5 w-1.5 rounded-full bg-current opacity-90" />
+      {formatClassification(classification)}
     </span>
   );
 }

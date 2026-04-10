@@ -64,3 +64,15 @@ export function classificationClassName(classification: EvaluationClassification
       return "bg-amber-500/20 text-amber-200 ring-1 ring-amber-400/40";
   }
 }
+
+export function formatClassification(classification: EvaluationClassification): string {
+  switch (classification) {
+    case "success":
+      return "Success";
+    case "failed":
+      return "Failed";
+    case "ambiguous":
+    default:
+      return "Ambiguous";
+  }
+}

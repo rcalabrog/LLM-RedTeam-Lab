@@ -18,6 +18,8 @@ export interface CampaignFormState {
   enabledDefenses: string[];
 }
 
+export type CenterWorkspaceMode = "setup" | "results";
+
 export interface CampaignViewModel {
   source: "transient" | "saved";
   run: CampaignRunResult | null;
