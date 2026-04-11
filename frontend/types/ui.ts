@@ -38,6 +38,9 @@ export interface AttackResultRow {
   warningsCount: number;
   flagsCount: number;
   responsePreview: string;
+  attackPromptFull?: string | null;
+  responseFull?: string | null;
+  systemPromptFull?: string | null;
   reasoningSummary: string;
   matchedSignals: string[];
   matchedRules: AttackEvaluationResult["matched_rules"];

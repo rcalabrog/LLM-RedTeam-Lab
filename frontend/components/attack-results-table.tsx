@@ -18,8 +18,8 @@ export function AttackResultsTable({ rows, selectedAttackId, onSelectRow }: Atta
   }
 
   return (
-    <div className="relative isolate h-full min-h-0 overflow-hidden rounded-xl border border-slate-700/70 bg-slate-900/55">
-      <div className="h-full overflow-auto">
+    <div className="relative isolate h-full min-h-0 max-h-full overflow-hidden rounded-xl border border-slate-700/70 bg-slate-900/55">
+      <div className="h-full min-h-0 max-h-full overflow-auto overscroll-contain">
         <table className="min-w-full border-separate border-spacing-0 text-sm">
           <thead className="sticky top-0 z-20 bg-slate-900/95 text-xs uppercase tracking-[0.12em] text-slate-400">
             <tr>

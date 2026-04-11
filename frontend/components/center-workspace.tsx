@@ -169,7 +169,7 @@ export function CenterWorkspace({
             onToggle={() => setOpenSections((current) => ({ ...current, results: !current.results }))}
             fill
             className="h-full"
-            contentClassName="min-h-0 p-2"
+            contentClassName="min-h-0 flex flex-1 flex-col p-2"
           >
             <CampaignResultsPanel
               mode={mode}

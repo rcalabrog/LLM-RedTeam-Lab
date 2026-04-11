@@ -64,6 +64,7 @@ class GuardedChatTarget(TargetApp):
                 metadata={
                     "request_tags": request.tags,
                     "request_metadata": request.metadata,
+                    "system_prompt_used": sanitized_payload.system_prompt,
                     "refused": True,
                     "enabled_defenses": defense_summary.enabled_defenses,
                     "defense_summary": defense_summary.model_dump(),
@@ -109,6 +110,7 @@ class GuardedChatTarget(TargetApp):
             metadata={
                 "request_tags": request.tags,
                 "request_metadata": request.metadata,
+                "system_prompt_used": sanitized_payload.system_prompt,
                 "provider_metadata": llm_response.metadata,
                 "usage": llm_response.usage,
                 "refused": False,

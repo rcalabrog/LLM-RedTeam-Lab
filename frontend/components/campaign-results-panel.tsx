@@ -20,7 +20,7 @@ export function CampaignResultsPanel({
 
   return (
     <section
-      className={`isolate flex min-h-0 flex-1 flex-col overflow-hidden ${
+      className={`isolate flex h-full min-h-0 flex-1 flex-col overflow-hidden ${
         embedded
           ? "rounded-lg border border-slate-700/70 bg-slate-900/55"
           : "rounded-2xl border border-slate-700/70 bg-slate-900/60 backdrop-blur"
@@ -43,7 +43,9 @@ export function CampaignResultsPanel({
         </header>
       )}
 
-      <div className={`min-h-0 flex-1 overflow-hidden ${embedded ? "" : isResultsMode ? "mt-2.5" : "mt-3"}`}>
+      <div
+        className={`h-full min-h-0 flex-1 overflow-hidden ${embedded ? "" : isResultsMode ? "mt-2.5" : "mt-3"}`}
+      >
         <AttackResultsTable rows={rows} selectedAttackId={selectedAttackId} onSelectRow={onSelectRow} />
       </div>
     </section>

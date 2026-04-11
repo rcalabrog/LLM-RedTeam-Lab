@@ -1,6 +1,6 @@
 # LLM Red Team Lab
 
-![LLM Red Team Lab Preview](frontend/public/images/llmredteamlab.JPG)
+![LLM Red Team Lab Preview](frontend/public/images/redteamlab.JPG)
 
 **LLM Red Team Lab** is a local-first security testing lab for evaluating jailbreak, prompt injection, prompt leakage, and defense effectiveness across vulnerable and defended LLM targets.
 It provides a full workflow to run deterministic offensive campaigns, compare vulnerable vs defended targets, evaluate outcomes with transparent rules, and persist campaign history in SQLite.

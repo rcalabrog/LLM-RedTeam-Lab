@@ -65,6 +65,7 @@ class SimpleVulnerableChatTarget(TargetApp):
             metadata={
                 "request_tags": request.tags,
                 "request_metadata": request.metadata,
+                "system_prompt_used": system_prompt,
                 "provider_metadata": llm_response.metadata,
                 "usage": llm_response.usage,
             },

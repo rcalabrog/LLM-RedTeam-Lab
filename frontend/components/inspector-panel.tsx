@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { AccordionSection } from "@/components/accordion-section";
 import { ClassificationBadge } from "@/components/classification-badge";
@@ -10,7 +10,7 @@ interface InspectorPanelProps {
   selectedRow: AttackResultRow | null;
 }
 
-type SectionKey = "overview" | "category" | "severity" | "detail" | "execution";
+type SectionKey = "detail" | "execution" | "overview" | "category" | "severity";
 
 function stringifyMetadata(value: unknown): string {
   if (value == null) {
@@ -25,12 +25,21 @@ function stringifyMetadata(value: unknown): string {
 
 export function InspectorPanel({ view, selectedRow }: InspectorPanelProps) {
   const [openSections, setOpenSections] = useState<Record<SectionKey, boolean>>({
-    overview: true,
+    detail: true,
+    execution: false,
+    overview: false,
     category: false,
     severity: false,
-    detail: true,
-    execution: false
   });
+  const [detailTextOpen, setDetailTextOpen] = useState({
+    attack: true,
+    response: true,
+    systemPrompt: false,
+  });
+
+  useEffect(() => {
+    setDetailTextOpen({ attack: true, response: true, systemPrompt: false });
+  }, [selectedRow?.attackId]);
 
   const summary = view?.evaluated.summary ?? null;
 
@@ -41,7 +50,7 @@ export function InspectorPanel({ view, selectedRow }: InspectorPanelProps) {
     return [
       { label: "Offensive Success", value: summary.success_count, tone: "text-rose-200" },
       { label: "Defended / Failed", value: summary.failed_count, tone: "text-emerald-200" },
-      { label: "Ambiguous", value: summary.ambiguous_count, tone: "text-amber-200" }
+      { label: "Ambiguous", value: summary.ambiguous_count, tone: "text-amber-200" },
     ];
   }, [summary]);
 
@@ -55,6 +64,164 @@ export function InspectorPanel({ view, selectedRow }: InspectorPanelProps) {
       </header>
 
       <div className="mt-3 min-h-0 flex-1 space-y-2 overflow-y-auto pr-1">
+        <AccordionSection
+          title="Selected Attack Detail"
+          subtitle={selectedRow ? selectedRow.attackName : "No row selected"}
+          open={openSections.detail}
+          onToggle={() => setOpenSections((current) => ({ ...current, detail: !current.detail }))}
+        >
+          {!selectedRow ? (
+            <p className="text-sm text-slate-300">Select a row in Campaign Results.</p>
+          ) : (
+            <div className="space-y-3">
+              <div className="rounded-lg border border-cyan-400/25 bg-cyan-500/5 p-2">
+                <p className="text-[11px] uppercase tracking-[0.12em] text-cyan-300">Attack/Prompt</p>
+                <p className="font-mono text-xs text-cyan-200">{selectedRow.attackId}</p>
+                <p className="mt-1 text-sm font-semibold text-slate-100">{selectedRow.attackName}</p>
+              </div>
+
+              <div className="rounded-lg bg-slate-800/55 p-2">
+                <p className="text-[11px] uppercase tracking-[0.12em] text-slate-400">Outcome - Category - Severity</p>
+                <div className="mt-1 flex flex-wrap items-center gap-2">
+                <ClassificationBadge classification={selectedRow.classification} />
+                <span className="rounded-full bg-slate-800/70 px-2 py-1 text-xs text-slate-300">
+                  {formatCategory(selectedRow.category)}
+                </span>
+                <span className="rounded-full bg-slate-800/70 px-2 py-1 text-xs text-slate-300">
+                  {formatSeverity(selectedRow.severity)}
+                </span>
+                </div>
+              </div>
+
+              <div className="rounded-lg bg-slate-800/55 p-2">
+                <p className="text-[11px] uppercase tracking-[0.12em] text-slate-400">Reasoning Summary</p>
+                <p className="mt-1 text-sm text-slate-200">{selectedRow.reasoningSummary}</p>
+              </div>
+
+              <div className="rounded-lg bg-slate-800/55">
+                <button
+                  type="button"
+                  onClick={() =>
+                    setDetailTextOpen((current) => ({ ...current, attack: !current.attack }))
+                  }
+                  className="flex w-full items-center justify-between gap-2 px-2 py-2 text-left"
+                >
+                  <p className="text-[11px] uppercase tracking-[0.12em] text-slate-400">Attack</p>
+                  <span className="text-[11px] text-slate-400">
+                    {detailTextOpen.attack ? "Collapse" : "Expand"}
+                  </span>
+                </button>
+                {detailTextOpen.attack && (
+                  <pre className="max-h-60 overflow-auto whitespace-pre-wrap break-words border-t border-slate-700/60 px-2 py-2 text-xs text-slate-200">
+                    {selectedRow.attackPromptFull ??
+                      selectedRow.rawResult?.attack_prompt_snapshot ??
+                      "No attack prompt captured."}
+                  </pre>
+                )}
+              </div>
+
+              <div className="rounded-lg bg-slate-800/55">
+                <button
+                  type="button"
+                  onClick={() =>
+                    setDetailTextOpen((current) => ({ ...current, response: !current.response }))
+                  }
+                  className="flex w-full items-center justify-between gap-2 px-2 py-2 text-left"
+                >
+                  <p className="text-[11px] uppercase tracking-[0.12em] text-slate-400">Response</p>
+                  <span className="text-[11px] text-slate-400">
+                    {detailTextOpen.response ? "Collapse" : "Expand"}
+                  </span>
+                </button>
+                {detailTextOpen.response && (
+                  <pre className="max-h-72 overflow-auto whitespace-pre-wrap break-words border-t border-slate-700/60 px-2 py-2 text-xs text-slate-200">
+                    {selectedRow.responseFull ??
+                      selectedRow.rawResult?.response_text ??
+                      selectedRow.responseExcerpt ??
+                      "No response captured."}
+                  </pre>
+                )}
+              </div>
+
+              <div className="rounded-lg bg-slate-800/55">
+                <button
+                  type="button"
+                  onClick={() =>
+                    setDetailTextOpen((current) => ({
+                      ...current,
+                      systemPrompt: !current.systemPrompt,
+                    }))
+                  }
+                  className="flex w-full items-center justify-between gap-2 px-2 py-2 text-left"
+                >
+                  <p className="text-[11px] uppercase tracking-[0.12em] text-slate-400">System Prompt</p>
+                  <span className="text-[11px] text-slate-400">
+                  {detailTextOpen.systemPrompt ? "Collapse" : "Expand"}
+                  </span>
+                </button>
+                {detailTextOpen.systemPrompt && (
+                  <pre className="max-h-72 overflow-auto whitespace-pre-wrap break-words border-t border-slate-700/60 px-2 py-2 text-xs text-slate-200">
+                    {selectedRow.systemPromptFull ??
+                      "System prompt not captured for this target execution."}
+                  </pre>
+                )}
+              </div>
+
+              <div className="rounded-lg bg-slate-800/55 p-2">
+                <p className="text-[11px] uppercase tracking-[0.12em] text-slate-400">Matched Signals</p>
+                <div className="mt-1 flex flex-wrap gap-1.5">
+                  {selectedRow.matchedSignals.length === 0 && (
+                    <span className="text-xs text-slate-400">None</span>
+                  )}
+                  {selectedRow.matchedSignals.map((signal) => (
+                    <span key={signal} className="rounded-full bg-slate-700/70 px-2 py-1 text-xs text-slate-200">
+                      {signal}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              <div className="rounded-lg bg-slate-800/55 p-2">
+                <p className="text-[11px] uppercase tracking-[0.12em] text-slate-400">Matched Rules</p>
+                <div className="mt-1 space-y-1.5">
+                  {selectedRow.matchedRules.length === 0 && (
+                    <span className="text-xs text-slate-400">None</span>
+                  )}
+                  {selectedRow.matchedRules.map((rule) => (
+                    <div key={rule.rule_id} className="rounded-md bg-slate-900/70 p-1.5">
+                      <p className="text-xs font-semibold text-slate-200">{rule.rule_id}</p>
+                      <p className="mt-0.5 text-xs text-slate-400">{rule.evidence}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+        </AccordionSection>
+
+        <AccordionSection
+          title="Execution Snapshot / Raw Metadata"
+          open={openSections.execution}
+          onToggle={() =>
+            setOpenSections((current) => ({ ...current, execution: !current.execution }))
+          }
+        >
+          {!selectedRow ? (
+            <p className="text-sm text-slate-300">No execution metadata yet.</p>
+          ) : (
+            <div className="space-y-2 text-xs text-slate-300">
+              <p>Execution status: {selectedRow.executionStatus}</p>
+              <p>Warnings: {selectedRow.warningsCount}</p>
+              <p>Flags: {selectedRow.flagsCount}</p>
+              <p>Defense mode: {selectedRow.rawResult?.defense_mode ?? "n/a"}</p>
+              <p>Risk level: {selectedRow.rawResult?.execution_metadata.risk_level ?? "n/a"}</p>
+              <pre className="max-h-44 overflow-auto rounded-lg bg-slate-950/75 p-2 text-[11px] text-slate-300">
+                {stringifyMetadata(selectedRow.rawResult?.execution_metadata.raw_target_metadata)}
+              </pre>
+            </div>
+          )}
+        </AccordionSection>
+
         <AccordionSection
           title="Overview Metrics"
           subtitle={summary ? `${summary.total_attacks} evaluated attacks` : "No campaign loaded"}
@@ -135,98 +302,6 @@ export function InspectorPanel({ view, selectedRow }: InspectorPanelProps) {
                   {formatSeverity(item.severity)}: {item.success}/{item.total} success
                 </p>
               ))}
-            </div>
-          )}
-        </AccordionSection>
-
-        <AccordionSection
-          title="Selected Attack Detail"
-          subtitle={selectedRow ? selectedRow.attackName : "No row selected"}
-          open={openSections.detail}
-          onToggle={() => setOpenSections((current) => ({ ...current, detail: !current.detail }))}
-        >
-          {!selectedRow ? (
-            <p className="text-sm text-slate-300">Select a row in Campaign Results.</p>
-          ) : (
-            <div className="space-y-3">
-              <div className="rounded-lg border border-cyan-400/25 bg-cyan-500/5 p-2">
-                <p className="font-mono text-xs text-cyan-200">{selectedRow.attackId}</p>
-                <p className="mt-1 text-sm font-semibold text-slate-100">{selectedRow.attackName}</p>
-              </div>
-
-              <div className="flex flex-wrap items-center gap-2">
-                <ClassificationBadge classification={selectedRow.classification} />
-                <span className="rounded-full bg-slate-800/70 px-2 py-1 text-xs text-slate-300">
-                  {formatCategory(selectedRow.category)}
-                </span>
-                <span className="rounded-full bg-slate-800/70 px-2 py-1 text-xs text-slate-300">
-                  {formatSeverity(selectedRow.severity)}
-                </span>
-              </div>
-
-              <div className="rounded-lg bg-slate-800/55 p-2">
-                <p className="text-[11px] uppercase tracking-[0.12em] text-slate-400">Reasoning Summary</p>
-                <p className="mt-1 text-sm text-slate-200">{selectedRow.reasoningSummary}</p>
-              </div>
-
-              <div className="rounded-lg bg-slate-800/55 p-2">
-                <p className="text-[11px] uppercase tracking-[0.12em] text-slate-400">Matched Signals</p>
-                <div className="mt-1 flex flex-wrap gap-1.5">
-                  {selectedRow.matchedSignals.length === 0 && (
-                    <span className="text-xs text-slate-400">None</span>
-                  )}
-                  {selectedRow.matchedSignals.map((signal) => (
-                    <span key={signal} className="rounded-full bg-slate-700/70 px-2 py-1 text-xs text-slate-200">
-                      {signal}
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-              <div className="rounded-lg bg-slate-800/55 p-2">
-                <p className="text-[11px] uppercase tracking-[0.12em] text-slate-400">Matched Rules</p>
-                <div className="mt-1 space-y-1.5">
-                  {selectedRow.matchedRules.length === 0 && (
-                    <span className="text-xs text-slate-400">None</span>
-                  )}
-                  {selectedRow.matchedRules.map((rule) => (
-                    <div key={rule.rule_id} className="rounded-md bg-slate-900/70 p-1.5">
-                      <p className="text-xs font-semibold text-slate-200">{rule.rule_id}</p>
-                      <p className="mt-0.5 text-xs text-slate-400">{rule.evidence}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="rounded-lg bg-slate-800/55 p-2">
-                <p className="text-[11px] uppercase tracking-[0.12em] text-slate-400">Response Excerpt</p>
-                <p className="mt-1 max-h-32 overflow-auto text-sm text-slate-200">
-                  {selectedRow.responseExcerpt ?? "No excerpt available."}
-                </p>
-              </div>
-            </div>
-          )}
-        </AccordionSection>
-
-        <AccordionSection
-          title="Execution Snapshot / Raw Metadata"
-          open={openSections.execution}
-          onToggle={() =>
-            setOpenSections((current) => ({ ...current, execution: !current.execution }))
-          }
-        >
-          {!selectedRow ? (
-            <p className="text-sm text-slate-300">No execution metadata yet.</p>
-          ) : (
-            <div className="space-y-2 text-xs text-slate-300">
-              <p>Execution status: {selectedRow.executionStatus}</p>
-              <p>Warnings: {selectedRow.warningsCount}</p>
-              <p>Flags: {selectedRow.flagsCount}</p>
-              <p>Defense mode: {selectedRow.rawResult?.defense_mode ?? "n/a"}</p>
-              <p>Risk level: {selectedRow.rawResult?.execution_metadata.risk_level ?? "n/a"}</p>
-              <pre className="max-h-44 overflow-auto rounded-lg bg-slate-950/75 p-2 text-[11px] text-slate-300">
-                {stringifyMetadata(selectedRow.rawResult?.execution_metadata.raw_target_metadata)}
-              </pre>
             </div>
           )}
         </AccordionSection>
