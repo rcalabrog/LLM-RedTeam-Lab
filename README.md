@@ -103,6 +103,56 @@ npm run dev
 NEXT_PUBLIC_API_BASE_URL=http://127.0.0.1:8000/api/v1
 ```
 
+## 3.1 LLM Requirements
+
+### Test Machine Used for This Project
+
+This project was tested locally on a machine with:
+
+- **GPU:** NVIDIA GeForce GTX 1660 6GB
+- **RAM:** 32GB DDR4 3200 C16
+
+This setup is enough to run the current local model configuration used in the project, but generation speed and responsiveness will still depend on quantization level, context size, and whether the model fits fully in VRAM or needs CPU/RAM offloading.
+
+### Minimum Requirements for the Current Models
+
+The project currently uses:
+
+- `qwen3.5:9b`
+- `llama3.1:8b`
+
+As a practical baseline for local usage:
+
+- **`qwen3.5:9b`**
+  - **Minimum VRAM:** ~5GB for 4-bit quantized variants
+  - **Recommended system RAM:** 16GB+
+  - **Recommended for smoother local use:** 6GB+ VRAM and 16–32GB RAM  
+    Public hardware guides for Qwen 3.5 9B report roughly **~5GB VRAM at 4-bit quantization** and around **~18GB at BF16/full precision**, with memory needs increasing as context grows. :contentReference[oaicite:0]{index=0}
+
+- **`llama3.1:8b`**
+  - **Practical minimum VRAM:** ~6–8GB for quantized local usage
+  - **Recommended system RAM:** 16GB+
+  - **Recommended for smoother local use:** 8GB+ VRAM and 16–32GB RAM  
+    For 7B–9B class models, local hardware guidance commonly places them in the **6–8GB VRAM** range for quantized inference, with larger VRAM preferred for better speed and less offloading. :contentReference[oaicite:1]{index=1}
+
+### If Your PC Is Weaker — or If You Want to Use Stronger Models
+
+If your machine does not meet these requirements, or if it exceeds them and you want to try larger or more capable local models, a very useful resource is:
+
+- **CanIRun.ai** — a hardware/model compatibility checker that estimates which local AI models your machine can run based on your GPU, VRAM, RAM, and browser-detected hardware. :contentReference[oaicite:2]{index=2}
+
+You can use it here:
+
+- `https://www.canirun.ai/`
+
+### Where to Change the Model in This Project
+
+To switch to a different local model, update the backend environment configuration in:
+
+```bash
+backend/.env
+```
+
 ## 4. Detailed Usage Guide
 
 1. Start Ollama:
@@ -243,11 +293,7 @@ This design favors:
 - Add side-by-side target comparison mode in the UI.
 - Add optional streaming execution progress events.
 
-## 11. Screenshots
-
-Screenshots and demo GIFs will be added here after final UI polish and end-to-end testing.
-
-## 12. License
+## 11. License
 
 This project is licensed under the MIT License.
 See [LICENSE](LICENSE) for details.
