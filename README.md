@@ -127,19 +127,19 @@ As a practical baseline for local usage:
   - **Minimum VRAM:** ~5GB for 4-bit quantized variants
   - **Recommended system RAM:** 16GB+
   - **Recommended for smoother local use:** 6GB+ VRAM and 16–32GB RAM  
-    Public hardware guides for Qwen 3.5 9B report roughly **~5GB VRAM at 4-bit quantization** and around **~18GB at BF16/full precision**, with memory needs increasing as context grows. :contentReference[oaicite:0]{index=0}
+    Public hardware guides for Qwen 3.5 9B report roughly **~5GB VRAM at 4-bit quantization** and around **~18GB at BF16/full precision**, with memory needs increasing as context grows.
 
 - **`llama3.1:8b`**
   - **Practical minimum VRAM:** ~6–8GB for quantized local usage
   - **Recommended system RAM:** 16GB+
   - **Recommended for smoother local use:** 8GB+ VRAM and 16–32GB RAM  
-    For 7B–9B class models, local hardware guidance commonly places them in the **6–8GB VRAM** range for quantized inference, with larger VRAM preferred for better speed and less offloading. :contentReference[oaicite:1]{index=1}
+    For 7B–9B class models, local hardware guidance commonly places them in the **6–8GB VRAM** range for quantized inference, with larger VRAM preferred for better speed and less offloading.
 
 ### If Your PC Is Weaker — or If You Want to Use Stronger Models
 
 If your machine does not meet these requirements, or if it exceeds them and you want to try larger or more capable local models, a very useful resource is:
 
-- **CanIRun.ai** — a hardware/model compatibility checker that estimates which local AI models your machine can run based on your GPU, VRAM, RAM, and browser-detected hardware. :contentReference[oaicite:2]{index=2}
+- **CanIRun.ai** — a hardware/model compatibility checker that estimates which local AI models your machine can run based on your GPU, VRAM, RAM, and browser-detected hardware.
 
 You can use it here:
 
