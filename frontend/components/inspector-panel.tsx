@@ -2,7 +2,9 @@ import { useEffect, useMemo, useState } from "react";
 
 import { AccordionSection } from "@/components/accordion-section";
 import { ClassificationBadge } from "@/components/classification-badge";
+import { downloadCampaignReport } from "@/lib/api-client";
 import { formatCategory, formatRate, formatSeverity } from "@/lib/presenters";
+import { ReportExportFormat } from "@/types/api";
 import { AttackResultRow, CampaignViewModel } from "@/types/ui";
 
 interface InspectorPanelProps {
@@ -24,6 +26,8 @@ function stringifyMetadata(value: unknown): string {
 }
 
 export function InspectorPanel({ view, selectedRow }: InspectorPanelProps) {
+  const [exportingFormat, setExportingFormat] = useState<ReportExportFormat | null>(null);
+  const [exportError, setExportError] = useState<string | null>(null);
   const [openSections, setOpenSections] = useState<Record<SectionKey, boolean>>({
     detail: true,
     execution: false,
@@ -42,6 +46,8 @@ export function InspectorPanel({ view, selectedRow }: InspectorPanelProps) {
   }, [selectedRow?.attackId]);
 
   const summary = view?.evaluated.summary ?? null;
+  const exportRunId = view?.run?.run_id ?? null;
+  const exportDisabled = !exportRunId || exportingFormat !== null;
 
   const cards = useMemo(() => {
     if (!summary) {
@@ -53,6 +59,22 @@ export function InspectorPanel({ view, selectedRow }: InspectorPanelProps) {
       { label: "Ambiguous", value: summary.ambiguous_count, tone: "text-amber-200" },
     ];
   }, [summary]);
+
+  async function handleExport(format: ReportExportFormat) {
+    if (!exportRunId) {
+      return;
+    }
+
+    setExportingFormat(format);
+    setExportError(null);
+    try {
+      await downloadCampaignReport(exportRunId, format);
+    } catch (error) {
+      setExportError(error instanceof Error ? error.message : "Failed to export report.");
+    } finally {
+      setExportingFormat(null);
+    }
+  }
 
   return (
     <section className="flex h-full min-h-0 flex-col rounded-2xl border border-slate-700/70 bg-slate-900/60 p-3 backdrop-blur">
@@ -306,6 +328,40 @@ export function InspectorPanel({ view, selectedRow }: InspectorPanelProps) {
           )}
         </AccordionSection>
       </div>
+
+      <footer className="mt-3 shrink-0 border-t border-slate-700/60 pt-3">
+        <div className="rounded-xl border border-slate-700/70 bg-slate-950/35 p-3">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-200">
+                Export Report
+              </p>
+              <p className="mt-0.5 text-[11px] text-slate-400">
+                {exportRunId ? "Download the active campaign." : "Run with save enabled or load a saved campaign."}
+              </p>
+            </div>
+          </div>
+          <div className="mt-3 grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              disabled={exportDisabled}
+              onClick={() => handleExport("json")}
+              className="rounded-lg border border-cyan-400/30 bg-cyan-500/10 px-3 py-2 text-xs font-semibold text-cyan-100 transition hover:border-cyan-300/60 hover:bg-cyan-500/15 disabled:cursor-not-allowed disabled:border-slate-700/70 disabled:bg-slate-800/45 disabled:text-slate-500"
+            >
+              {exportingFormat === "json" ? "Exporting..." : "Export JSON"}
+            </button>
+            <button
+              type="button"
+              disabled={exportDisabled}
+              onClick={() => handleExport("pdf")}
+              className="rounded-lg border border-emerald-400/30 bg-emerald-500/10 px-3 py-2 text-xs font-semibold text-emerald-100 transition hover:border-emerald-300/60 hover:bg-emerald-500/15 disabled:cursor-not-allowed disabled:border-slate-700/70 disabled:bg-slate-800/45 disabled:text-slate-500"
+            >
+              {exportingFormat === "pdf" ? "Exporting..." : "Export PDF"}
+            </button>
+          </div>
+          {exportError && <p className="mt-2 text-xs text-rose-300">{exportError}</p>}
+        </div>
+      </footer>
     </section>
   );
 }

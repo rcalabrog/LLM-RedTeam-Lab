@@ -289,7 +289,6 @@ This design favors:
 - Expand defense strategies and policy granularity.
 - Improve multilingual rule coverage in evaluation logic.
 - Add trend charts and historical comparative analytics.
-- Add exportable run reports (JSON/PDF).
 - Add side-by-side target comparison mode in the UI.
 - Add optional streaming execution progress events.
 

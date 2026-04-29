@@ -9,6 +9,8 @@ export type AttackSeverity = "low" | "medium" | "high";
 
 export type EvaluationClassification = "success" | "failed" | "ambiguous";
 
+export type ReportExportFormat = "json" | "pdf";
+
 export interface TargetDescriptor {
   name: string;
   mode: string;

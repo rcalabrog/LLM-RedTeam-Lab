@@ -6,6 +6,7 @@ from .api.defenses import router as defenses_router
 from .api.evaluation import router as evaluation_router
 from .api.health import router as health_router
 from .api.llm import router as llm_router
+from .api.reports import router as reports_router
 from .api.runs import router as runs_router
 from .api.storage import router as storage_router
 from .api.targets import router as targets_router
@@ -48,6 +49,8 @@ app.include_router(evaluation_router)
 app.include_router(evaluation_router, prefix=settings.api_prefix)
 app.include_router(llm_router)
 app.include_router(llm_router, prefix=settings.api_prefix)
+app.include_router(reports_router)
+app.include_router(reports_router, prefix=settings.api_prefix)
 app.include_router(runs_router)
 app.include_router(runs_router, prefix=settings.api_prefix)
 app.include_router(storage_router)

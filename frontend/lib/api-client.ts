@@ -2,6 +2,7 @@ import {
   CampaignRunRequest,
   EvaluatedCampaignResult,
   ReadinessResponse,
+  ReportExportFormat,
   SavedCampaignRecord,
   SavedCampaignSummary,
   WorkflowCatalogResponse
@@ -46,6 +47,33 @@ async function request<T>(path: string, options?: FetchOptions): Promise<T> {
   }
 
   return (await response.json()) as T;
+}
+
+async function readErrorMessage(response: Response): Promise<string> {
+  let message = `Request failed with status ${response.status}`;
+  try {
+    const payload = (await response.json()) as { detail?: string };
+    if (payload.detail) {
+      message = payload.detail;
+    }
+  } catch {
+    // Keep fallback message if backend did not return JSON.
+  }
+  return message;
+}
+
+function filenameFromDisposition(value: string | null, fallback: string): string {
+  if (!value) {
+    return fallback;
+  }
+
+  const utf8Match = value.match(/filename\*=UTF-8''([^;]+)/i);
+  if (utf8Match?.[1]) {
+    return decodeURIComponent(utf8Match[1].trim());
+  }
+
+  const asciiMatch = value.match(/filename="?([^";]+)"?/i);
+  return asciiMatch?.[1]?.trim() || fallback;
 }
 
 export function getWorkflowCatalog(): Promise<WorkflowCatalogResponse> {
@@ -93,4 +121,31 @@ export function listSavedCampaigns(): Promise<SavedCampaignSummary[]> {
 
 export function getSavedCampaign(runId: string): Promise<SavedCampaignRecord> {
   return request<SavedCampaignRecord>(`/storage/campaigns/${runId}`, { cache: "no-store" });
+}
+
+export async function downloadCampaignReport(
+  runId: string,
+  format: ReportExportFormat
+): Promise<void> {
+  const response = await fetch(`${API_BASE_URL}/reports/campaigns/${runId}?format=${format}`, {
+    cache: "no-store"
+  });
+
+  if (!response.ok) {
+    throw new ApiError(await readErrorMessage(response), response.status);
+  }
+
+  const blob = await response.blob();
+  const filename = filenameFromDisposition(
+    response.headers.get("content-disposition"),
+    `campaign-${runId}-report.${format}`
+  );
+  const url = window.URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = filename;
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+  window.URL.revokeObjectURL(url);
 }
