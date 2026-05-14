@@ -18,7 +18,9 @@ export interface CampaignFormState {
   enabledDefenses: string[];
 }
 
-export type CenterWorkspaceMode = "setup" | "results";
+export type WorkspaceView = "setup" | "results";
+
+export type CenterWorkspaceMode = WorkspaceView;
 
 export interface CampaignViewModel {
   source: "transient" | "saved";

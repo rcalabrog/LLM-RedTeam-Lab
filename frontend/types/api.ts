@@ -29,6 +29,18 @@ export interface AttackCategoryCount {
   count: number;
 }
 
+export interface AttackDefinition {
+  attack_id: string;
+  name: string;
+  category: AttackCategory;
+  description: string;
+  prompt: string;
+  severity: AttackSeverity;
+  tags: string[];
+  expected_risk_signals: string[];
+  notes?: string | null;
+}
+
 export interface WorkflowCatalogResponse {
   default_target: string;
   targets: TargetDescriptor[];

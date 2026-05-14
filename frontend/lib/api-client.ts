@@ -1,4 +1,5 @@
 import {
+  AttackDefinition,
   CampaignRunRequest,
   EvaluatedCampaignResult,
   ReadinessResponse,
@@ -78,6 +79,10 @@ function filenameFromDisposition(value: string | null, fallback: string): string
 
 export function getWorkflowCatalog(): Promise<WorkflowCatalogResponse> {
   return request<WorkflowCatalogResponse>("/workflows/catalog", { cache: "no-store" });
+}
+
+export function listAttacks(): Promise<AttackDefinition[]> {
+  return request<AttackDefinition[]>("/attacks", { cache: "no-store" });
 }
 
 export function getReadiness(): Promise<ReadinessResponse> {

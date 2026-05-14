@@ -76,6 +76,24 @@ export function InspectorPanel({ view, selectedRow }: InspectorPanelProps) {
     }
   }
 
+  if (!view) {
+    return (
+      <section className="flex h-full min-h-0 flex-col rounded-2xl border border-slate-700/70 bg-slate-900/60 p-4 backdrop-blur">
+        <header className="shrink-0 border-b border-slate-700/60 pb-3">
+          <p className="text-xs uppercase tracking-[0.14em] text-slate-300">Inspector</p>
+          <p className="mt-1 text-sm font-semibold text-slate-100">No campaign results loaded</p>
+        </header>
+        <div className="flex min-h-0 flex-1 items-center justify-center">
+          <div className="max-w-md rounded-2xl border border-slate-700/70 bg-slate-950/35 p-5 text-center">
+            <p className="text-sm text-slate-200">
+              No campaign results loaded yet. Run a campaign or select a saved campaign.
+            </p>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section className="flex h-full min-h-0 flex-col rounded-2xl border border-slate-700/70 bg-slate-900/60 p-3 backdrop-blur">
       <header className="shrink-0 border-b border-slate-700/60 pb-2">

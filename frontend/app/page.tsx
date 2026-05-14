@@ -3,10 +3,10 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 
-import { CenterWorkspace } from "@/components/center-workspace";
-import { InspectorPanel } from "@/components/inspector-panel";
 import { LabHeader } from "@/components/lab-header";
+import { ResultsView } from "@/components/results-view";
 import { SavedCampaignsSidebar } from "@/components/saved-campaigns-sidebar";
+import { SetupView } from "@/components/setup-view";
 import { buildAttackRows } from "@/lib/campaign-results";
 import {
   executeEvaluate,
@@ -14,15 +14,17 @@ import {
   getReadiness,
   getSavedCampaign,
   getWorkflowCatalog,
+  listAttacks,
   listSavedCampaigns
 } from "@/lib/api-client";
 import {
+  AttackDefinition,
   CampaignRunRequest,
   ReadinessResponse,
   SavedCampaignSummary,
   WorkflowCatalogResponse
 } from "@/types/api";
-import { CampaignFormState, CampaignViewModel, CenterWorkspaceMode, toCampaignView } from "@/types/ui";
+import { CampaignFormState, CampaignViewModel, WorkspaceView, toCampaignView } from "@/types/ui";
 
 function buildRequestPayload(formState: CampaignFormState): CampaignRunRequest {
   const maxAttacksParsed = formState.maxAttacks.trim() ? Number(formState.maxAttacks.trim()) : undefined;
@@ -45,6 +47,10 @@ export default function HomePage() {
   const [catalogLoading, setCatalogLoading] = useState(true);
   const [catalogError, setCatalogError] = useState<string | null>(null);
 
+  const [attackDefinitions, setAttackDefinitions] = useState<AttackDefinition[]>([]);
+  const [attackDefinitionsLoading, setAttackDefinitionsLoading] = useState(true);
+  const [attackDefinitionsError, setAttackDefinitionsError] = useState<string | null>(null);
+
   const [savedCampaigns, setSavedCampaigns] = useState<SavedCampaignSummary[]>([]);
   const [savedLoading, setSavedLoading] = useState(true);
   const [savedError, setSavedError] = useState<string | null>(null);
@@ -53,6 +59,7 @@ export default function HomePage() {
   const [readinessLoading, setReadinessLoading] = useState(true);
 
   const [activeView, setActiveView] = useState<CampaignViewModel | null>(null);
+  const [workspaceView, setWorkspaceView] = useState<WorkspaceView>("setup");
   const [selectedSavedRunId, setSelectedSavedRunId] = useState<string | null>(null);
   const [selectedAttackId, setSelectedAttackId] = useState<string | null>(null);
 
@@ -70,8 +77,6 @@ export default function HomePage() {
     saveAfterExecution: true,
     enabledDefenses: []
   });
-  const centerMode: CenterWorkspaceMode = activeView ? "results" : "setup";
-
   const refreshSavedCampaigns = useCallback(async () => {
     setSavedLoading(true);
     setSavedError(null);
@@ -94,6 +99,19 @@ export default function HomePage() {
       setReadiness(null);
     } finally {
       setReadinessLoading(false);
+    }
+  }, []);
+
+  const refreshAttackDefinitions = useCallback(async () => {
+    setAttackDefinitionsLoading(true);
+    setAttackDefinitionsError(null);
+    try {
+      const attacks = await listAttacks();
+      setAttackDefinitions(attacks);
+    } catch (error) {
+      setAttackDefinitionsError(error instanceof Error ? error.message : "Failed to fetch attack catalog.");
+    } finally {
+      setAttackDefinitionsLoading(false);
     }
   }, []);
 
@@ -126,13 +144,14 @@ export default function HomePage() {
     }
 
     bootstrap();
+    refreshAttackDefinitions();
     refreshSavedCampaigns();
     refreshReadiness();
 
     return () => {
       cancelled = true;
     };
-  }, [refreshSavedCampaigns, refreshReadiness]);
+  }, [refreshAttackDefinitions, refreshSavedCampaigns, refreshReadiness]);
 
   const attackRows = useMemo(() => {
     if (!activeView) {
@@ -195,6 +214,7 @@ export default function HomePage() {
           const view = toCampaignView(saved);
           setActiveView(view);
           setSelectedSavedRunId(saved.run_result.run_id);
+          setWorkspaceView("results");
           await refreshSavedCampaigns();
         } else {
           const evaluated = await executeEvaluate(payload);
@@ -204,6 +224,7 @@ export default function HomePage() {
             evaluated
           });
           setSelectedSavedRunId(null);
+          setWorkspaceView("results");
         }
         await refreshReadiness();
       } catch (error) {
@@ -223,6 +244,7 @@ export default function HomePage() {
     try {
       const record = await getSavedCampaign(runId);
       setActiveView(toCampaignView(record));
+      setWorkspaceView("results");
     } catch (error) {
       setRunError(error instanceof Error ? error.message : "Failed to load saved campaign.");
     }
@@ -230,6 +252,13 @@ export default function HomePage() {
 
   const handleFormPatch = useCallback((patch: Partial<CampaignFormState>) => {
     setFormState((current) => ({ ...current, ...patch }));
+  }, []);
+
+  const handleNewRun = useCallback(() => {
+    setSelectedSavedRunId(null);
+    setActiveView(null);
+    setRunError(null);
+    setWorkspaceView("setup");
   }, []);
 
   const applyVulnerablePreset = useCallback(() => {
@@ -251,63 +280,57 @@ export default function HomePage() {
     }));
   }, [catalog]);
 
+  const savedCampaignsSlot = (
+    <motion.div initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} className="h-full min-h-0">
+      <SavedCampaignsSidebar
+        campaigns={savedCampaigns}
+        selectedRunId={selectedSavedRunId}
+        loading={savedLoading}
+        error={savedError}
+        readiness={readiness}
+        readinessLoading={readinessLoading}
+        onSelectCampaign={handleSelectSavedCampaign}
+        onNewRun={handleNewRun}
+      />
+    </motion.div>
+  );
+
   return (
     <main className="relative h-screen overflow-hidden bg-[#070d1a] text-slate-100">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_5%,rgba(34,211,238,0.16),transparent_35%),radial-gradient(circle_at_85%_20%,rgba(16,185,129,0.10),transparent_40%),linear-gradient(180deg,rgba(15,23,42,0.45),rgba(2,6,23,0.92))]" />
       <div className="relative mx-auto flex h-full max-w-[1720px] flex-col p-4">
         <div className="shrink-0">
-          <LabHeader compact />
+          <LabHeader compact activeView={workspaceView} onViewChange={setWorkspaceView} />
         </div>
 
-        <div className="mt-3 grid min-h-0 flex-1 grid-cols-12 gap-3">
-          <motion.div
-            initial={{ opacity: 0, x: -8 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="col-span-3 h-full min-h-0"
-          >
-            <SavedCampaignsSidebar
-              campaigns={savedCampaigns}
-              selectedRunId={selectedSavedRunId}
-              loading={savedLoading}
-              error={savedError}
-              readiness={readiness}
-              readinessLoading={readinessLoading}
-              onSelectCampaign={handleSelectSavedCampaign}
-              onNewRun={() => {
-                setSelectedSavedRunId(null);
-                setActiveView(null);
-                setRunError(null);
-              }}
-            />
-          </motion.div>
-
-          <CenterWorkspace
-            mode={centerMode}
+        {workspaceView === "setup" ? (
+          <SetupView
+            savedCampaignsSlot={savedCampaignsSlot}
             catalog={catalog}
             catalogLoading={catalogLoading}
+            attackDefinitions={attackDefinitions}
+            attackDefinitionsLoading={attackDefinitionsLoading}
+            attackDefinitionsError={attackDefinitionsError}
             runError={runError ?? catalogError}
             formState={formState}
             running={running}
             runElapsedMs={runElapsedMs}
-            activeView={activeView}
-            attackRows={attackRows}
-            selectedAttackId={selectedAttackId}
-            onSelectAttack={(attackId) => setSelectedAttackId(attackId)}
             onFormChange={handleFormPatch}
             onApplyVulnerablePreset={applyVulnerablePreset}
             onApplyGuardedDefaultPreset={applyGuardedPreset}
             onRun={() => runWorkflow(formState.saveAfterExecution)}
             onRunEvaluateOnly={() => runWorkflow(false)}
           />
-
-          <motion.div
-            initial={{ opacity: 0, x: 8 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="col-span-3 h-full min-h-0"
-          >
-            <InspectorPanel view={activeView} selectedRow={selectedAttackRow} />
-          </motion.div>
-        </div>
+        ) : (
+          <ResultsView
+            savedCampaignsSlot={savedCampaignsSlot}
+            activeView={activeView}
+            rows={attackRows}
+            selectedAttackId={selectedAttackId}
+            selectedRow={selectedAttackRow}
+            onSelectAttack={(attackId) => setSelectedAttackId(attackId)}
+          />
+        )}
       </div>
     </main>
   );

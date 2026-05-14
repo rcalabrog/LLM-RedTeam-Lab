@@ -1,11 +1,20 @@
 import { motion } from "framer-motion";
 import Image from "next/image";
 
+import { WorkspaceView } from "@/types/ui";
+
 interface LabHeaderProps {
   compact?: boolean;
+  activeView: WorkspaceView;
+  onViewChange: (view: WorkspaceView) => void;
 }
 
-export function LabHeader({ compact = false }: LabHeaderProps) {
+const tabs: { value: WorkspaceView; label: string }[] = [
+  { value: "setup", label: "Setup" },
+  { value: "results", label: "Results" }
+];
+
+export function LabHeader({ compact = false, activeView, onViewChange }: LabHeaderProps) {
   return (
     <motion.header
       initial={{ opacity: 0, y: 10 }}
@@ -16,7 +25,7 @@ export function LabHeader({ compact = false }: LabHeaderProps) {
       }`}
     >
       <div className="flex items-start justify-between gap-4">
-        <div>
+        <div className="min-w-0">
           <p className="font-mono text-xs uppercase tracking-[0.16em] text-cyan-300">
             LLM Security Lab
           </p>
@@ -33,22 +42,44 @@ export function LabHeader({ compact = false }: LabHeaderProps) {
           </p>
         </div>
 
-        <a
-          href="https://github.com/rcalabrog"
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label="Open rcalabrog GitHub profile"
-          className="shrink-0 rounded-lg border border-slate-700/60 bg-slate-900/55 p-1 transition hover:border-cyan-300/60 hover:bg-slate-800/70"
-        >
-          <Image
-            src="/images/rc_logo.png"
-            alt="RC logo"
-            width={compact ? 52 : 62}
-            height={compact ? 52 : 62}
-            className="h-auto w-auto"
-            priority
-          />
-        </a>
+        <div className="flex shrink-0 items-start gap-3">
+          <div className="grid grid-cols-2 gap-1 rounded-xl border border-slate-700/70 bg-slate-950/45 p-1">
+            {tabs.map((tab) => {
+              const active = activeView === tab.value;
+              return (
+                <button
+                  key={tab.value}
+                  type="button"
+                  onClick={() => onViewChange(tab.value)}
+                  className={`rounded-lg px-4 py-2 text-xs font-semibold uppercase tracking-[0.12em] transition ${
+                    active
+                      ? "bg-cyan-400 text-slate-950 shadow-[0_0_24px_-12px_rgba(34,211,238,0.9)]"
+                      : "text-slate-300 hover:bg-slate-800/80 hover:text-slate-100"
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              );
+            })}
+          </div>
+
+          <a
+            href="https://github.com/rcalabrog"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Open rcalabrog GitHub profile"
+            className="rounded-lg border border-slate-700/60 bg-slate-900/55 p-1 transition hover:border-cyan-300/60 hover:bg-slate-800/70"
+          >
+            <Image
+              src="/images/rc_logo.png"
+              alt="RC logo"
+              width={compact ? 52 : 62}
+              height={compact ? 52 : 62}
+              className="h-auto w-auto"
+              priority
+            />
+          </a>
+        </div>
       </div>
     </motion.header>
   );
